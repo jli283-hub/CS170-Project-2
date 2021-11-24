@@ -7,18 +7,58 @@
 
 using namespace std;
 
+int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, int k, int numColumns){
+	string lines;
+	ifstream infs;
+	int numRows;
+	string line;
+	
+	infs.open(fileName.c_str());
+	
+	if(infs.is_open()){
+		while(getline(infs,lines)){ //counting the number of rows in the file
+			numRows++; 
+		}
+		
+		for(int i = 0; i < numRows; i++){
+			
+			for(int k = 0; i < numRows; k++){
+			}
+		}
+	}else{
+		cout << "Could not open file!!!" << endl;
+		exit(1);
+	}
+
+	return 0;	
+}
+
+bool isInCurrSet(vector<int> currFeatures){
+	return false; //false means that it is not in the currSet and thus needs to be considered
+}
+
 void feature_search_forward(string fileName, int numColumns){
 
 	vector<int> currFeatures; //initializing the current set of features to be empty
-
+	int accuracy;
 	for(int i = 1; i < numColumns - 1; i++){
 		cout << "On the " << i << "th level of the search tree" << endl;
 		int feature_to_add;
 		int best_accuracy_so_far = 0;
 
 		for(int k = 1; k < numColumns - 1; k++){
-			cout << "--Considering adding the " << k << "th feature" << endl;
+			if(!isInCurrSet(currFeatures)){ //checks if the current feature number is in the curr set of features
+				cout << "--Considering adding the " << k << "th feature" << endl;
+				accuracy = leave_one_out_cross_validation(fileName, currFeatures, k + 1, numColumns); 
+			}
+
+			if(accuracy > best_accuracy_so_far){
+				best_accuracy_so_far = accuracy;
+				feature_to_add = k;
+			}
 		}
+
+		cout << "On level " << i << " I added feature " << feature_to_add << " to the current set." << endl;
 	}
 
 }
