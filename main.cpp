@@ -41,14 +41,15 @@ int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, in
 			data.push_back(lines);//pushing the whole line into data vector for further processing
 		}
 
-		for(int i = 1; i < numRows - 1; i++){
+		for(int i = 0; i < numRows - 1; i++){
 			string object_to_classify = data.at(i);
 			double label_object_to_classify = getLabelOfObject(object_to_classify);
 			
+			cout << label_object_to_classify << endl;
 			int nearest_neighbor_distance = 9999;
 			int nearest_neighbor_location = 9999;
 
-			for(int k = 1; k < numRows - 1; k++){
+			for(int k = 0; k < numRows - 1; k++){
 				if(k != i){
 					int distance = calculateDistance(object_to_classify, data.at(k), numColumns);
 					if(distance < nearest_neighbor_distance){
