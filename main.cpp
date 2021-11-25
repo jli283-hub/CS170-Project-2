@@ -7,30 +7,70 @@
 
 using namespace std;
 
+int calculateDistance(string object1, string object2, int numColumns){
+
+	return 0;
+}
+
+double getLabelOfObject(string object){ //will return the class label of the object
+	
+	string substring;
+
+	istringstream iss(object);
+
+	iss >> substring;
+
+	return stod(substring);
+}
+
 int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, int k, int numColumns){
+
+	int number_correctly_classified = 0;
+	double nearest_neighbor_label;
+	int accuracy;
 	string lines;
 	ifstream infs;
 	int numRows;
-	string line;
-	
+	vector<string> data;
+
 	infs.open(fileName.c_str());
 	
 	if(infs.is_open()){
 		while(getline(infs,lines)){ //counting the number of rows in the file
 			numRows++; 
+			data.push_back(lines);//pushing the whole line into data vector for further processing
 		}
-		
-		for(int i = 0; i < numRows; i++){
+
+		for(int i = 1; i < numRows - 1; i++){
+			string object_to_classify = data.at(i);
+			double label_object_to_classify = getLabelOfObject(object_to_classify);
 			
-			for(int k = 0; i < numRows; k++){
+			int nearest_neighbor_distance = 9999;
+			int nearest_neighbor_location = 9999;
+
+			for(int k = 1; k < numRows - 1; k++){
+				if(k != i){
+					int distance = calculateDistance(object_to_classify, data.at(k), numColumns);
+					if(distance < nearest_neighbor_distance){
+						nearest_neighbor_distance = distance;
+						nearest_neighbor_location = k;
+						nearest_neighbor_label = getLabelOfObject(data.at(k));
+					}
+				}
+			}
+
+			if(label_object_to_classify == nearest_neighbor_label){
+				number_correctly_classified = number_correctly_classified + 1;
 			}
 		}
+
+		accuracy = number_correctly_classified / numRows;
 	}else{
 		cout << "Could not open file!!!" << endl;
 		exit(1);
 	}
 
-	return 0;	
+	return accuracy;	
 }
 
 bool isInCurrSet(vector<int> currFeatures){
