@@ -4,12 +4,47 @@
 #include <stdio.h>
 #include <sstream>
 #include <vector>
+#include <cmath>
+#include <math.h>   
 
 using namespace std;
 
+vector<double> splitString(string s){
+
+	vector<double> v; //this will store the values from each line 
+
+	istringstream ss(s);
+	string line;
+
+	while(ss >> line){ //only getting the value without space
+		v.push_back(stod(line));
+	}
+
+	return v;
+}
+
 int calculateDistance(string object1, string object2, int numColumns){
 
-	return 0;
+	vector<double> instance1 = splitString(object1); //original instance
+	vector<double> instance2 = splitString(object2); //nearest neighbor that we want to calculate the distance too
+
+	int sum = 0;
+	int distance;
+
+	for(int i = 0; i < instance1.size(); i++){
+
+		int temp1 = instance1.at(i);
+		int temp2 = instance2.at(i);
+		
+		int calculation = pow(temp1 - temp2, 2);
+
+		sum = sum + calculation;
+	}
+
+	distance = sqrt(sum);
+
+	return distance;
+	
 }
 
 double getLabelOfObject(string object){ //will return the class label of the object
@@ -44,8 +79,7 @@ int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, in
 		for(int i = 0; i < numRows - 1; i++){
 			string object_to_classify = data.at(i);
 			double label_object_to_classify = getLabelOfObject(object_to_classify);
-			
-			cout << label_object_to_classify << endl;
+
 			int nearest_neighbor_distance = 9999;
 			int nearest_neighbor_location = 9999;
 
@@ -74,8 +108,16 @@ int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, in
 	return accuracy;	
 }
 
-bool isInCurrSet(vector<int> currFeatures){
-	return false; //false means that it is not in the currSet and thus needs to be considered
+bool isInCurrSet(vector<int> currFeatures, int k){
+	bool check = false;
+
+	for(int i = 0; i < currFeatures.size(); i++){
+		if(currFeatures.at(i) == k){
+			check = true; //means that is is already in the currSet
+		}
+	}
+
+	return check; //false means that it is not in the currSet and thus needs to be considered
 }
 
 void feature_search_forward(string fileName, int numColumns){
@@ -88,9 +130,9 @@ void feature_search_forward(string fileName, int numColumns){
 		int best_accuracy_so_far = 0;
 
 		for(int k = 1; k < numColumns - 1; k++){
-			if(!isInCurrSet(currFeatures)){ //checks if the current feature number is in the curr set of features
+			if(!isInCurrSet(currFeatures, k)){ //checks if the current feature number is in the curr set of features
 				cout << "--Considering adding the " << k << "th feature" << endl;
-				accuracy = leave_one_out_cross_validation(fileName, currFeatures, k + 1, numColumns); 
+				accuracy = leave_one_out_cross_validation(fileName, currFeatures, k + 1, numColumns);
 			}
 
 			if(accuracy > best_accuracy_so_far){
@@ -98,7 +140,7 @@ void feature_search_forward(string fileName, int numColumns){
 				feature_to_add = k;
 			}
 		}
-
+		currFeatures.push_back(feature_to_add);
 		cout << "On level " << i << " I added feature " << feature_to_add << " to the current set." << endl;
 	}
 
