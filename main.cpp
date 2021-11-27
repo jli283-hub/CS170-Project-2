@@ -14,10 +14,10 @@ vector<double> splitString(string s){
 	vector<double> v; //this will store the values from each line 
 
 	istringstream ss(s);
-	string line;
+	double line;
 
 	while(ss >> line){ //only getting the value without space
-		v.push_back(stod(line));
+		v.push_back(line);
 	}
 
 	return v;
@@ -28,15 +28,15 @@ int calculateDistance(string object1, string object2, int numColumns){
 	vector<double> instance1 = splitString(object1); //original instance
 	vector<double> instance2 = splitString(object2); //nearest neighbor that we want to calculate the distance too
 
-	int sum = 0;
-	int distance;
+	double sum = 0;
+	double distance = 9999;
 
 	for(int i = 0; i < instance1.size(); i++){
 
-		int temp1 = instance1.at(i);
-		int temp2 = instance2.at(i);
+		double temp1 = instance1.at(i);
+		double temp2 = instance2.at(i);
 		
-		int calculation = pow(temp1 - temp2, 2);
+		double calculation = pow(temp1 - temp2, 2);
 
 		sum = sum + calculation;
 	}
@@ -58,14 +58,14 @@ double getLabelOfObject(string object){ //will return the class label of the obj
 	return stod(substring);
 }
 
-int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, int k, int numColumns){
+double leave_one_out_cross_validation(string fileName, vector<int> currFeatures, int numColumns){
 
-	int number_correctly_classified = 0;
+	float number_correctly_classified = 0.0;
 	double nearest_neighbor_label;
 	int accuracy;
 	string lines;
 	ifstream infs;
-	int numRows;
+	double numRows;
 	vector<string> data;
 
 	infs.open(fileName.c_str());
@@ -76,16 +76,18 @@ int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, in
 			data.push_back(lines);//pushing the whole line into data vector for further processing
 		}
 
-		for(int i = 0; i < numRows - 1; i++){
+		for(int i = 1; i < numRows - 1; i++){ 
 			string object_to_classify = data.at(i);
 			double label_object_to_classify = getLabelOfObject(object_to_classify);
 
 			int nearest_neighbor_distance = 9999;
 			int nearest_neighbor_location = 9999;
 
-			for(int k = 0; k < numRows - 1; k++){
+			for(int k = 1; k < numRows - 1; k++){
 				if(k != i){
+
 					int distance = calculateDistance(object_to_classify, data.at(k), numColumns);
+
 					if(distance < nearest_neighbor_distance){
 						nearest_neighbor_distance = distance;
 						nearest_neighbor_location = k;
@@ -99,15 +101,16 @@ int leave_one_out_cross_validation(string fileName, vector<int> currFeatures, in
 			}
 		}
 
-		accuracy = number_correctly_classified / numRows;
 	}else{
 		cout << "Could not open file!!!" << endl;
 		exit(1);
 	}
 
-	return accuracy;	
-}
+	infs.close();
 
+	return number_correctly_classified / double(numRows) * 100;
+
+}
 bool isInCurrSet(vector<int> currFeatures, int k){
 	bool check = false;
 
@@ -123,24 +126,26 @@ bool isInCurrSet(vector<int> currFeatures, int k){
 void feature_search_forward(string fileName, int numColumns){
 
 	vector<int> currFeatures; //initializing the current set of features to be empty
-	int accuracy;
-	for(int i = 1; i < numColumns - 1; i++){
+	double accuracy;
+	for(int i = 1; i < numColumns; i++){
 		cout << "On the " << i << "th level of the search tree" << endl;
 		int feature_to_add;
 		int best_accuracy_so_far = 0;
 
-		for(int k = 1; k < numColumns - 1; k++){
+		for(int k = 1; k < numColumns; k++){
 			if(!isInCurrSet(currFeatures, k)){ //checks if the current feature number is in the curr set of features
-				cout << "--Considering adding the " << k << "th feature" << endl;
-				accuracy = leave_one_out_cross_validation(fileName, currFeatures, k + 1, numColumns);
-			}
 
-			if(accuracy > best_accuracy_so_far){
-				best_accuracy_so_far = accuracy;
-				feature_to_add = k;
+				cout << "--Considering adding the " << k << "th feature" << endl;
+				accuracy = leave_one_out_cross_validation(fileName, currFeatures, numColumns); 
+				cout << "Accuracy of feature " << k << ": " << accuracy << "%" << endl;
+
+				if(accuracy > best_accuracy_so_far){
+					best_accuracy_so_far = accuracy;
+					feature_to_add = k;
+				}
 			}
 		}
-		currFeatures.push_back(feature_to_add);
+		currFeatures.push_back(feature_to_add); //adding the best feature to the current set of features
 		cout << "On level " << i << " I added feature " << feature_to_add << " to the current set." << endl;
 	}
 
