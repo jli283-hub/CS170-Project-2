@@ -2,12 +2,15 @@
 #include <string>
 #include <fstream>
 #include <stdio.h>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 #include <cmath>
 #include <math.h>   
 
 using namespace std;
+
+bool isInCurrSet(vector<int> currFeatures, int k);
 
 vector<double> splitString(string s){
 
@@ -23,22 +26,23 @@ vector<double> splitString(string s){
 	return v;
 }
 
-int calculateDistance(string object1, string object2, int numColumns){
+int calculateDistance(vector<double> object1, vector<double> object2, vector<int> currFeatures, int feature_to_consider, int numColumns){
 
-	vector<double> instance1 = splitString(object1); //original instance
-	vector<double> instance2 = splitString(object2); //nearest neighbor that we want to calculate the distance too
+	vector<double> instance1 = object1; //original instance
+	vector<double> instance2 = object2; //nearest neighbor that we want to calculate the distance tooi have 
 
 	double sum = 0;
 	double distance = 9999;
 
 	for(int i = 0; i < instance1.size(); i++){
-
-		double temp1 = instance1.at(i);
-		double temp2 = instance2.at(i);
+		if(i == feature_to_consider || isInCurrSet(currFeatures, i)){
+			double temp1 = instance1.at(i);
+			double temp2 = instance2.at(i);
 		
-		double calculation = pow(temp1 - temp2, 2);
+			double calculation = pow(temp1 - temp2, 2);
 
-		sum = sum + calculation;
+			sum = sum + calculation;
+		}
 	}
 
 	distance = sqrt(sum);
@@ -58,15 +62,16 @@ double getLabelOfObject(string object){ //will return the class label of the obj
 	return stod(substring);
 }
 
-double leave_one_out_cross_validation(string fileName, vector<int> currFeatures, int numColumns){
+double leave_one_out_cross_validation(string fileName, vector<int> currFeatures, int feature_to_consider, int numColumns){
 
 	float number_correctly_classified = 0.0;
-	double nearest_neighbor_label;
+	int nearest_neighbor_label;
 	int accuracy;
 	string lines;
 	ifstream infs;
 	double numRows;
 	vector<string> data;
+	vector<vector<double>> file;
 
 	infs.open(fileName.c_str());
 	
@@ -74,11 +79,18 @@ double leave_one_out_cross_validation(string fileName, vector<int> currFeatures,
 		while(getline(infs,lines)){ //counting the number of rows in the file
 			numRows++; 
 			data.push_back(lines);//pushing the whole line into data vector for further processing
+			
+		}
+
+		for(int d = 0; d < data.size(); d++){
+			string temp = data.at(d);
+			
+			file.push_back(splitString(temp)); //storing the tokenized vector into a vector of doubles
 		}
 
 		for(int i = 1; i < numRows - 1; i++){ 
-			string object_to_classify = data.at(i);
-			double label_object_to_classify = getLabelOfObject(object_to_classify);
+			vector<double> object_to_classify = file.at(i);
+			double label_object_to_classify = object_to_classify.at(0);
 
 			int nearest_neighbor_distance = 9999;
 			int nearest_neighbor_location = 9999;
@@ -86,12 +98,12 @@ double leave_one_out_cross_validation(string fileName, vector<int> currFeatures,
 			for(int k = 1; k < numRows - 1; k++){
 				if(k != i){
 
-					int distance = calculateDistance(object_to_classify, data.at(k), numColumns);
+					int distance = calculateDistance(object_to_classify, file.at(k), currFeatures, feature_to_consider, numColumns);
 
 					if(distance < nearest_neighbor_distance){
 						nearest_neighbor_distance = distance;
 						nearest_neighbor_location = k;
-						nearest_neighbor_label = getLabelOfObject(data.at(k));
+						nearest_neighbor_label = file.at(k).at(0);
 					}
 				}
 			}
@@ -108,7 +120,7 @@ double leave_one_out_cross_validation(string fileName, vector<int> currFeatures,
 
 	infs.close();
 
-	return number_correctly_classified / double(numRows) * 100;
+	return (number_correctly_classified / double(numRows - 1))* 100;
 
 }
 bool isInCurrSet(vector<int> currFeatures, int k){
@@ -136,9 +148,8 @@ void feature_search_forward(string fileName, int numColumns){
 			if(!isInCurrSet(currFeatures, k)){ //checks if the current feature number is in the curr set of features
 
 				cout << "--Considering adding the " << k << "th feature" << endl;
-				accuracy = leave_one_out_cross_validation(fileName, currFeatures, numColumns); 
+				accuracy = leave_one_out_cross_validation(fileName, currFeatures, k + 1, numColumns); 
 				cout << "Accuracy of feature " << k << ": " << accuracy << "%" << endl;
-
 				if(accuracy > best_accuracy_so_far){
 					best_accuracy_so_far = accuracy;
 					feature_to_add = k;
