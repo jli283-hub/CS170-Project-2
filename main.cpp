@@ -34,7 +34,7 @@ int calculateDistance(vector<double> object1, vector<double> object2, vector<int
 	double sum = 0;
 	double distance = 9999;
 
-	for(int i = 0; i < instance1.size(); i++){
+	for(int i = 1; i < instance1.size(); i++){
 		if(i == feature_to_consider || isInCurrSet(currFeatures, i)){
 			double temp1 = instance1.at(i);
 			double temp2 = instance2.at(i);
@@ -100,7 +100,7 @@ double leave_one_out_cross_validation(string fileName, vector<int> currFeatures,
 
 					int distance = calculateDistance(object_to_classify, file.at(k), currFeatures, feature_to_consider, numColumns);
 
-					if(distance < nearest_neighbor_distance){
+					if(distance < nearest_neighbor_distance){ //changed to less than or equal too (correct)?
 						nearest_neighbor_distance = distance;
 						nearest_neighbor_location = k;
 						nearest_neighbor_label = file.at(k).at(0);
@@ -148,14 +148,16 @@ void feature_search_forward(string fileName, int numColumns){
 			if(!isInCurrSet(currFeatures, k)){ //checks if the current feature number is in the curr set of features
 
 				cout << "--Considering adding the " << k << "th feature" << endl;
-				accuracy = leave_one_out_cross_validation(fileName, currFeatures, k + 1, numColumns); 
+				accuracy = leave_one_out_cross_validation(fileName, currFeatures, k, numColumns); //added K + 1
 				cout << "Accuracy of feature " << k << ": " << accuracy << "%" << endl;
-				if(accuracy > best_accuracy_so_far){
-					best_accuracy_so_far = accuracy;
-					feature_to_add = k;
-				}
+			}
+
+			if(accuracy > best_accuracy_so_far){
+				best_accuracy_so_far = accuracy;
+				feature_to_add = k;
 			}
 		}
+
 		currFeatures.push_back(feature_to_add); //adding the best feature to the current set of features
 		cout << "On level " << i << " I added feature " << feature_to_add << " to the current set." << endl;
 	}
