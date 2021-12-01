@@ -484,7 +484,8 @@ void feature_search_forward(string fileName, int numColumns){
 
 void feature_search_backward(string fileName, int numColumns){
     vector<int> currFeatures;
-    
+    vector<double> accuracies; //storing the accuracies to print out the best one once search is over
+    vector<vector<int>> bestFeatures; //storing the features that were added at each level
     
     for(int i = 1; i < numColumns; i++){ //pushing all the possible features into the current set 
         currFeatures.push_back(i);
@@ -517,8 +518,8 @@ void feature_search_backward(string fileName, int numColumns){
 		}
 
 		currFeatures = remove_Feature(currFeatures, feature_to_remove); //removing the feature
-        //accuracies.push_back(best_accuracy_so_far);
-        //bestFeatures.push_back(currFeatures);
+        accuracies.push_back(best_accuracy_so_far);
+        bestFeatures.push_back(currFeatures);
 		cout << "On level " << i << " I removed feature " << feature_to_remove << " to the current set." << endl;
         
         cout << "Current set of Features: { ";
@@ -530,6 +531,28 @@ void feature_search_backward(string fileName, int numColumns){
         cout << "}" << endl;
         
 	}
+    
+    cout << endl << endl;
+    
+    cout << "---------------FINISHED SEARCH!!--------------" << endl;
+    
+   double maxAccuracy = findMaxAccuracy(accuracies);
+    
+   int max_accuracy_position = findIndex(maxAccuracy, accuracies);
+   
+   vector<int> f = bestFeatures.at(max_accuracy_position);
+    
+   cout << "The best subset of features are: { ";
+   
+   for(int k = 0; k < f.size(); k++){
+       cout << f.at(k) << " ";
+       
+       if(k == f.size() - 1){
+            cout << "}";
+       }
+   }
+   
+   cout << " which has an accuracy of " << maxAccuracy << "%" << endl;
     
 }
 
