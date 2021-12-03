@@ -17,6 +17,41 @@ using namespace std;
 vector<double> splitString(string s);
 bool isInCurrSet(vector<int> currFeatures, int k);
 
+double calculateDefaultRate(vector<vector<double>> file, double numRows){
+    
+    double num_class_1 = 0;
+    double num_class_2 = 0;
+    
+    double default_rate = 0;
+    
+    for(int i = 0; i < file.size(); i++){
+        double class_label = file.at(i).at(0);
+        
+        if(class_label == 1){
+            num_class_1++;
+        }
+        
+        if(class_label == 2){
+            num_class_2++;
+        }
+    }
+    
+    if(num_class_1 > num_class_2){
+        default_rate = num_class_1 / numRows;
+    }
+    
+    if(num_class_2 > num_class_1){
+        default_rate = num_class_2 / numRows;
+    }
+    
+    if(num_class_2 == num_class_1){
+        default_rate = num_class_2 / numRows;
+    }
+    
+    return default_rate;
+    
+}
+
 vector<int> remove_Feature(vector<int> currFeatures, int feature_to_remove){
     
     
@@ -297,6 +332,7 @@ double leave_one_out_cross_validation(string fileName, vector<int> currFeatures,
 	string lines;
 	ifstream infs;
 	double numRows;
+    double default_rate;
 	vector<string> data;
 	vector<vector<double>> file;
 
@@ -315,7 +351,6 @@ double leave_one_out_cross_validation(string fileName, vector<int> currFeatures,
 			file.push_back(splitString(temp)); //storing the tokenized vector into a vector of doubles
             
 		}
-       
         
         /*
         
